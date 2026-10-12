@@ -9,11 +9,11 @@ contract MyToken {
     uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
 
-    constructor(string memory _name, string memory _symbol, uint8 _decimal) {
+    constructor(string memory _name, string memory _symbol, uint8 _decimal, uint256 _amount) {
         name = _name;
         symbol = _symbol;
         decimals = _decimal;
-        _mint(1 * 10 ** uint256(decimals), msg.sender);
+        _mint(_amount * 10 ** uint256(decimals), msg.sender);
     }
 
     function _mint(uint256 amount, address owner) internal {
