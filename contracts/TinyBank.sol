@@ -7,7 +7,8 @@ interface IMyToken {
 }
 
 contract TinyBank {
-    event Staked(address, uint256);
+    event Staked(address from, uint256 amount);
+    event Withdraw(uint256 amount, address to);
 
     IMyToken public stakingToken;
     mapping(address => uint256) public staked;
@@ -23,5 +24,13 @@ contract TinyBank {
         staked[msg.sender] += _amount;
         totalStaked += _amount;
         emit Staked(msg.sender, _amount);
+    }
+
+    function withdraw(uint256 _amount) external {
+        require(staked[msg.sender] >= _amount, "Insufficient staked token");
+        stakingToken.transfer(_amount, msg.sender);  // CA가 직접 보내는 것이므로 "transfer" 사용
+        staked[msg.sender] -= _amount;
+        totalStaked -= _amount;
+        emit Withdraw(_amount, msg.sender);
     }
 }

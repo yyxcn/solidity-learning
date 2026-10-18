@@ -37,7 +37,6 @@ contract MyToken {
     function _mint(uint256 amount, address owner) internal {
         totalSupply += amount;
         balanceOf[owner] += amount;
-
         emit Transfer(address(0), owner, amount);
     }
 
@@ -45,7 +44,6 @@ contract MyToken {
         require(balanceOf[msg.sender] >= amount, "Insufficient balance");
         balanceOf[msg.sender] -= amount;
         balanceOf[to] += amount;
-
         emit Transfer(msg.sender, to, amount);
     }
 
