@@ -3,9 +3,7 @@ import { expect } from "chai";
 import { MyToken } from "../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { parseUnits } from "ethers";
-
-const MINTING_AMOUNT = 100n;
-const DECIMALS = 18n;
+import { DECIMALS, MINTING_AMOUNT } from "./constant";
 
 describe("My Token", () => {
   let myTokenC: MyToken;
