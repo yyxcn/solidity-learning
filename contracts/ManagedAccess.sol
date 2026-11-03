@@ -6,18 +6,49 @@ abstract contract ManagedAccess {
     address public owner;
     address public manager;
 
+    address[] public managers;
+    mapping(address => bool) public isManager;
+    mapping(address => bool) public hasConfirmed;
+    uint256 public confirmationCount;
+
     constructor(address _owner, address _manager) {
         owner = _owner;
         manager = _manager;
+
+        managers.push(_manager);
+        isManager[_manager] = true;
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "You are not authorized");
+    modifier onlyOwner(address _manager) {
+        require(msg.sender == owner, "You are not an owner");
+        require(!isManager[_manager], "Already a manager");
+        
+        isManager[_manager] = true;
+        managers.push(_manager);
         _;
     }
 
     modifier onlyManager() {
-        require(msg.sender == manager, "You are not authorized to manage this contract");
+        require(isManager[msg.sender], "You are not a manager");
         _;
+    }
+
+    modifier onlyAllConfirmed() {
+        require(
+            confirmationCount == managers.length,
+            "Not all confirmed yet"
+        );
+        _;
+    }
+
+    function setManager(address _manager) external onlyOwner(_manager) {
+        manager = _manager;
+    }
+
+    function confirm() external onlyManager {
+        if (!hasConfirmed[msg.sender]) {
+            hasConfirmed[msg.sender] = true;
+            confirmationCount++;
+        }
     }
 }

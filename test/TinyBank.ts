@@ -78,12 +78,46 @@ describe("TinyBank", () => {
       );
     });
 
-    it("Should revert when changing rewardPerBlock by hacker", async () => {
+    it("should revert when changing rewardPerBlock by hacker", async () => {
       const hacker = signers[3];
       const rewardToChange = hre.ethers.parseUnits("10000", DECIMALS);
       await expect(
         tinyBankC.connect(hacker).setRewardPerBlock(rewardToChange),
-      ).to.be.revertedWith("You are not authorized to manage this contract");
+      ).to.be.revertedWith("You are not a manager");
+    });
+  });
+
+  // Week 9 Assignmetment
+  describe("All confirmed check", () => {
+    it("should sent TX by manager", async () => {
+      const signer0 = signers[0];
+      const signer1 = signers[1];
+      const signer2 = signers[2];
+      const signer3 = signers[3];
+      const amount = 100n;
+
+      await tinyBankC.setManager(signer1);
+      await tinyBankC.setManager(signer2);
+
+      await expect(
+        tinyBankC.connect(signer3).setRewardPerBlock(amount),
+      ).to.be.revertedWith("You are not a manager");
+    });
+
+    it("should assigned by all managers", async () => {
+      const signer0 = signers[0];
+      const signer1 = signers[1];
+      const signer2 = signers[2];
+      const amount = 100n;
+
+      await tinyBankC.setManager(signer1);
+      await tinyBankC.setManager(signer2);
+
+      await tinyBankC.connect(signer0).confirm();
+      await tinyBankC.connect(signer1).confirm();
+      await expect(tinyBankC.setRewardPerBlock(amount)).to.be.revertedWith(
+        "Not all confirmed yet",
+      );
     });
   });
 });
