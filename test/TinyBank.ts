@@ -12,7 +12,16 @@ describe("TinyBank", () => {
   let tinyBankC: TinyBank;
   beforeEach(async () => {
     signers = await hre.ethers.getSigners();
+    const managers = [
+      signers[0].address,
+      signers[1].address,
+      signers[2].address,
+      signers[3].address,
+      signers[4].address,
+    ];
     myTokenC = await hre.ethers.deployContract("MyToken", [
+      managers,
+      5,
       "MyToken",
       "MT",
       DECIMALS,
@@ -20,8 +29,9 @@ describe("TinyBank", () => {
     ]);
     tinyBankC = await hre.ethers.deployContract("TinyBank", [
       await myTokenC.getAddress(),
+      managers,
+      5,
     ]);
-    await myTokenC.setManager(tinyBankC.getAddress());
   });
 
   describe("Initialized state check", () => {
@@ -50,6 +60,9 @@ describe("TinyBank", () => {
 
   describe("Wtihdraw", async () => {
     it("should return 0 staked after withdrawing total token", async () => {
+      for (const signer of signers.slice(0, 5)) {
+        await myTokenC.connect(signer).confirm();
+      }
       const signer0 = signers[0];
       const stakingAmount = hre.ethers.parseUnits("50", DECIMALS);
       await myTokenC.approve(await tinyBankC.getAddress(), stakingAmount);
@@ -61,6 +74,9 @@ describe("TinyBank", () => {
 
   describe("Reward", () => {
     it("should reward 1MT every blocks", async () => {
+      for (const signer of signers.slice(0, 5)) {
+        await myTokenC.connect(signer).confirm();
+      }
       const signer0 = signers[0];
       const stakingAmount = hre.ethers.parseUnits("50", DECIMALS);
       await myTokenC.approve(tinyBankC.getAddress(), stakingAmount);
@@ -79,44 +95,31 @@ describe("TinyBank", () => {
     });
 
     it("should revert when changing rewardPerBlock by hacker", async () => {
-      const hacker = signers[3];
+      const hacker = signers[5];
       const rewardToChange = hre.ethers.parseUnits("10000", DECIMALS);
       await expect(
         tinyBankC.connect(hacker).setRewardPerBlock(rewardToChange),
-      ).to.be.revertedWith("You are not a manager");
+      ).to.be.revertedWith("Not all managers confirmed yet");
     });
   });
 
   // Week 9 Assignmetment
   describe("All confirmed check", () => {
     it("should sent TX by manager", async () => {
-      const signer0 = signers[0];
-      const signer1 = signers[1];
-      const signer2 = signers[2];
-      const signer3 = signers[3];
-      const amount = 100n;
-
-      await tinyBankC.setManager(signer1);
-      await tinyBankC.setManager(signer2);
-
-      await expect(
-        tinyBankC.connect(signer3).setRewardPerBlock(amount),
-      ).to.be.revertedWith("You are not a manager");
+      const stranger = signers[5];
+      await expect(tinyBankC.connect(stranger).confirm()).to.be.revertedWith(
+        "You are not one of managers",
+      );
     });
 
     it("should assigned by all managers", async () => {
-      const signer0 = signers[0];
-      const signer1 = signers[1];
-      const signer2 = signers[2];
+      for (const signer of signers.slice(0, 5)) {
+        await tinyBankC.connect(signer).confirm();
+      }
       const amount = 100n;
 
-      await tinyBankC.setManager(signer1);
-      await tinyBankC.setManager(signer2);
-
-      await tinyBankC.connect(signer0).confirm();
-      await tinyBankC.connect(signer1).confirm();
-      await expect(tinyBankC.setRewardPerBlock(amount)).to.be.revertedWith(
-        "Not all confirmed yet",
+      await expect(tinyBankC.setRewardPerBlock(amount)).not.to.be.revertedWith(
+        "Not all managers confirmed yet",
       );
     });
   });

@@ -39,6 +39,7 @@ abstract contract ManagedAccess {
             "Not all confirmed yet"
         );
         _;
+        reset();
     }
 
     function setManager(address _manager) external onlyOwner(_manager) {
@@ -49,6 +50,12 @@ abstract contract ManagedAccess {
         if (!hasConfirmed[msg.sender]) {
             hasConfirmed[msg.sender] = true;
             confirmationCount++;
+        }
+    }
+
+    function reset() internal {
+        for(uint i = 0; i < managers.length; i++) {
+            hasConfirmed[managers[i]] = false;
         }
     }
 }

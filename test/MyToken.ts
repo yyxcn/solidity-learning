@@ -10,7 +10,16 @@ describe("My Token", () => {
   let signers: HardhatEthersSigner[];
   beforeEach("should deploy", async () => {
     signers = await hre.ethers.getSigners();
+    const managers = [
+      signers[0].address,
+      signers[1].address,
+      signers[2].address,
+      signers[3].address,
+      signers[4].address,
+    ];
     myTokenC = await hre.ethers.deployContract("MyToken", [
+      managers,
+      5,
       "MyToken",
       "MT",
       DECIMALS,
@@ -45,11 +54,11 @@ describe("My Token", () => {
     });
 
     it("should return or revert when minting infinitly", async () => {
-      const hacker = signers[2];
+      const hacker = signers[5];
       const mintingAgainAmount = hre.ethers.parseUnits("10000", DECIMALS);
       await expect(
         myTokenC.connect(hacker).mint(mintingAgainAmount, hacker),
-      ).to.be.revertedWith("You are not a manager");
+      ).to.be.revertedWith("Not all managers confirmed yet");
     });
   });
 
