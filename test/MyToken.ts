@@ -48,7 +48,7 @@ describe("My Token", () => {
   describe("Mint", () => {
     it("should return 1MT balance for signer 0", async () => {
       const signer0 = signers[0];
-      expect(await myTokenC.balanceOf(signer0)).equal(
+      expect(await myTokenC.balanceOf(signer0.address)).equal(
         MINTING_AMOUNT * 10n ** DECIMALS,
       );
     });
